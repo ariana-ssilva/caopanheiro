@@ -11,3 +11,6 @@ instance/
 
 # Metadados de arquivos copiados do Windows
 *:Zone.Identifier
+
+.env.*
+!.env.example

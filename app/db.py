@@ -1,4 +1,5 @@
 import os
+import re
 import sqlite3
 from pathlib import Path
 from urllib.parse import urlparse
@@ -121,7 +122,10 @@ def _mysql_config(url):
 def get_db():
     if "db" not in g:
         url = current_app.config.get("DATABASE_URL", "")
-        if url.startswith("mysql://"):
+        if url.startswith(("postgres://", "postgresql://")):
+            import psycopg2
+            g.db = psycopg2.connect(url, connect_timeout=10, options="-c search_path=caopanheiro")
+        elif url.startswith("mysql://"):
             import mysql.connector
             g.db = mysql.connector.connect(**_mysql_config(url))
         else:
@@ -140,30 +144,105 @@ def close_db(exception=None):
         db.close()
 
 
+def database_kind():
+    url = current_app.config.get("DATABASE_URL", "")
+    if url.startswith(("postgres://", "postgresql://")):
+        return "postgres"
+    if url.startswith("mysql://"):
+        return "mysql"
+    if url:
+        raise ValueError("DATABASE_URL deve usar postgres://, postgresql:// ou mysql://.")
+    return "sqlite"
+
+
+def adapt_sql(query):
+    if database_kind() != "sqlite":
+        query = query.replace("?", "%s")
+    if database_kind() == "postgres":
+        query = query.replace(" LIKE ", " ILIKE ")
+    return query
+
+
+def insert_row(cursor, query, args):
+    # All generated IDs must use RETURNING on PostgreSQL, including atomic flows.
+    match = re.match(r"\s*INSERT INTO (\w+)", query, re.I)
+    returning = database_kind() == "postgres" and match and match[1].lower() != "favorites"
+    if returning:
+        query = query.rstrip().rstrip(";") + " RETURNING id"
+    cursor.execute(adapt_sql(query), args)
+    return cursor.fetchone()[0] if returning else cursor.lastrowid
+
+
 def query_db(query, args=(), one=False):
     db = get_db()
-    if current_app.config.get("DATABASE_URL", "").startswith("mysql://"):
-        query = query.replace("?", "%s")
-    cursor = db.cursor(dictionary=True) if query.startswith("SELECT") and db.__class__.__module__.startswith("mysql") else db.execute(query, args)
-    if query.startswith("SELECT") and db.__class__.__module__.startswith("mysql"):
-        cursor.execute(query, args)
-    rows = cursor.fetchall()
-    cursor.close()
-    return (rows[0] if rows else None) if one else rows
+    kind = database_kind()
+    if kind == "postgres":
+        from psycopg2.extras import RealDictCursor
+        cursor = db.cursor(cursor_factory=RealDictCursor)
+    else:
+        cursor = db.cursor(dictionary=True) if kind == "mysql" else db.cursor()
+    try:
+        cursor.execute(adapt_sql(query), args)
+        rows = cursor.fetchall()
+        return (rows[0] if rows else None) if one else rows
+    finally:
+        cursor.close()
 
 
 def execute_db(query, args=()):
     db = get_db()
-    if current_app.config.get("DATABASE_URL", "").startswith("mysql://"):
-        query = query.replace("?", "%s")
-        cursor = db.cursor()
-        cursor.execute(query, args)
-    else:
-        cursor = db.execute(query, args)
-    db.commit()
-    last_id = cursor.lastrowid
-    cursor.close()
-    return last_id
+    cursor = db.cursor()
+    try:
+        if query.lstrip().upper().startswith("INSERT"):
+            last_id = insert_row(cursor, query, args)
+        else:
+            cursor.execute(adapt_sql(query), args)
+            last_id = None
+        db.commit()
+        return last_id
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        cursor.close()
+
+
+def init_postgres(db):
+    cursor = db.cursor()
+    try:
+        # Serialize automatic startup migrations across Gunicorn workers/deploys.
+        cursor.execute("SELECT pg_advisory_xact_lock(784021965)")
+        cursor.execute("CREATE SCHEMA IF NOT EXISTS caopanheiro")
+        schema = SCHEMA.replace("INTEGER PRIMARY KEY AUTOINCREMENT", "SERIAL PRIMARY KEY")
+        for statement in schema.split(";"):
+            if statement.strip():
+                cursor.execute(statement)
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_schema='caopanheiro' AND table_name='donations' AND column_name='contact'")
+        legacy_donations = cursor.fetchone() is None
+        columns = {
+            "users": {"photo_filename": "VARCHAR(255)"},
+            "animals": {"photo_filename": "VARCHAR(255)", "breed": "VARCHAR(80)", "sex": "VARCHAR(30)", "vaccinated": "VARCHAR(30)", "neutered": "VARCHAR(30)"},
+            "adoptions": {"answers": "TEXT"},
+            "donations": {"contact": "VARCHAR(180)"},
+        }
+        for table, fields in columns.items():
+            for name, kind in fields.items():
+                cursor.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {name} {kind}")
+        if legacy_donations:
+            cursor.execute("UPDATE donations SET status='pending' WHERE status='received'")
+        cursor.execute("ALTER TABLE donations ALTER COLUMN status SET DEFAULT 'pending'")
+        cursor.execute("""CREATE TABLE IF NOT EXISTS donation_events (
+            id SERIAL PRIMARY KEY, donation_id INTEGER NOT NULL REFERENCES donations(id),
+            actor_id INTEGER REFERENCES users(id), status VARCHAR(20) NOT NULL,
+            note TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""")
+        # Application data stays out of Supabase's exposed public schema.
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        cursor.close()
 
 
 def _split_schema():
@@ -172,7 +251,12 @@ def _split_schema():
 
 @click.command("init-db")
 def init_db():
+    database_kind()  # Validate URLs rather than silently opening SQLite.
     db = get_db()
+    if database_kind() == "postgres":
+        init_postgres(db)
+        click.echo("Banco PostgreSQL inicializado.")
+        return
     schema = MYSQL_SCHEMA if current_app.config.get("DATABASE_URL", "").startswith("mysql://") else SCHEMA
     for statement in [item.strip() for item in schema.split(";") if item.strip()]:
         if current_app.config.get("DATABASE_URL", "").startswith("mysql://"):

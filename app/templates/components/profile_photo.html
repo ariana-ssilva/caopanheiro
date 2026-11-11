@@ -1,6 +1,6 @@
 <div class="profile-photo-field">
   <div class="profile-photo-preview">
-    {% if g.user and g.user.photo_filename %}<img class="profile-current-photo" src="{{ url_for('static', filename='uploads/' ~ g.user.photo_filename) }}" alt="Foto de perfil atual">{% else %}<div class="profile-photo-placeholder" aria-hidden="true"><i class="fa-solid fa-user"></i></div>{% endif %}
+    {% if g.user and g.user.photo_filename %}<img class="profile-current-photo" src="{{ photo_url(g.user.photo_filename) }}" alt="Foto de perfil atual">{% else %}<div class="profile-photo-placeholder" aria-hidden="true"><i class="fa-solid fa-user"></i></div>{% endif %}
     <img id="selected-photo-preview" class="selected-photo-preview profile-new-photo" alt="Prévia da nova foto de perfil" hidden>
   </div>
   <div class="profile-photo-controls"><label>Foto de perfil <small>(opcional)</small><input type="file" name="photo" data-photo-input accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-describedby="profile-photo-help photo-preview-message"></label>

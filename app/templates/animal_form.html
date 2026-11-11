@@ -16,7 +16,7 @@
   <aside class="editor-photo-panel">
     <h2><i class="fa-solid fa-camera" aria-hidden="true"></i> Foto do pet</h2>
     <p>Uma boa foto ajuda a contar essa história.</p>
-    {% if animal and animal.photo_filename %}<img class="editor-current-photo" src="{{ url_for('static', filename='uploads/' ~ animal.photo_filename) }}" alt="Foto atual de {{ animal.name }}">{% endif %}
+    {% if animal and animal.photo_filename %}<img class="editor-current-photo" src="{{ photo_url(animal.photo_filename) }}" alt="Foto atual de {{ animal.name }}">{% endif %}
     <img id="selected-photo-preview" class="selected-photo-preview" alt="Prévia da foto selecionada" hidden>
     <label class="editor-upload" for="animal-photo">Escolher foto<input id="animal-photo" type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-describedby="photo-help photo-preview-message"></label>
     <small id="photo-help">JPG, PNG ou WEBP · até 5 MB</small><p id="photo-preview-message" role="status" aria-live="polite"></p>

@@ -24,6 +24,7 @@ Integração com redes sociais, aplicativo mobile, pagamentos, notificações pu
 - Python 3.10+;
 - Flask;
 - SQLite para desenvolvimento local;
+- PostgreSQL e Supabase Storage para publicação no Render;
 - MySQL 8+ para produção;
 - HTML5, CSS3 e Jinja2;
 - pytest.
@@ -133,3 +134,7 @@ Formulários de conta, doação, adoção e cadastro de animal usam campos compa
 Cada mudança registra um evento; somente o próprio doador e a equipe autorizada podem consultar os detalhes e contatos. Não há transferência de dinheiro ou notificação externa automática: valores financeiros são ofertas, e as orientações são consultadas dentro do sistema. A confirmação financeira é manual, feita pela equipe após verificar o recebimento.
 
 A migração converte uma única vez as antigas intenções que tinham o rótulo técnico `received` para pendentes, pois a versão anterior não possuía confirmação de recebimento. Eventos anteriores não são inventados; o detalhe identifica registros legados sem histórico. Novas confirmações de recebimento são preservadas nas próximas inicializações.
+
+## Publicação
+
+A publicação escolhida usa **Render + Supabase**, com PostgreSQL e imagens externos. Siga [Publicação no Render com Supabase](docs/render-supabase.md). O roteiro alternativo do PythonAnywhere continua em [Publicação no PythonAnywhere](docs/publicacao.md).

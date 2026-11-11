@@ -1,4 +1,5 @@
 import pytest
+import os
 from io import BytesIO
 
 from app import create_app
@@ -11,11 +12,21 @@ def client(tmp_path):
     app = create_app({
         "TESTING": True,
         "DATABASE": str(tmp_path / "test.sqlite3"),
+        "DATABASE_URL": os.environ.get("TEST_DATABASE_URL", ""),
         "SECRET_KEY": "test",
         "UPLOAD_FOLDER": str(tmp_path / "uploads"),
     })
     with app.test_client() as client:
         with app.app_context():
+            if os.environ.get("TEST_DATABASE_URL"):
+                # Only run this suite against a disposable local test database.
+                from urllib.parse import urlparse
+                assert urlparse(os.environ["TEST_DATABASE_URL"]).hostname in ("127.0.0.1", "localhost")
+                from app.db import get_db
+                cursor = get_db().cursor()
+                cursor.execute("TRUNCATE donation_events,feedback,favorites,donations,adoptions,animals,users RESTART IDENTITY CASCADE")
+                get_db().commit()
+                cursor.close()
             execute_db("INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,'ong')",
                        ("Equipe", "ong@test.com", hash_password("password")))
             execute_db("INSERT INTO animals (name,species,age,size,description,health) VALUES (?,?,?,?,?,?)",

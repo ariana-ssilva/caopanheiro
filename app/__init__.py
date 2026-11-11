@@ -1,17 +1,16 @@
 import os
 import json
 from decimal import Decimal, InvalidOperation
-import uuid
 from functools import wraps
 from pathlib import Path
 
 import click
 from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
 from werkzeug.exceptions import RequestEntityTooLarge
-from werkzeug.utils import secure_filename
 
 from .db import close_db, get_db, init_db, query_db, execute_db
 from .donations import KINDS, STATUSES, TRANSITIONS, record_donation, transition_donation
+from .storage import save_photo, remove_photo, photo_url
 from .security import check_password, hash_password
 
 
@@ -21,12 +20,24 @@ def create_app(test_config=None):
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-only-change-me"),
         DATABASE_URL=os.environ.get("DATABASE_URL", ""),
         MAX_CONTENT_LENGTH=5 * 1024 * 1024,
+        STORAGE_BACKEND=os.environ.get("STORAGE_BACKEND", "local"),
+        SUPABASE_URL=os.environ.get("SUPABASE_URL", ""),
+        SUPABASE_SERVICE_ROLE_KEY=os.environ.get("SUPABASE_SERVICE_ROLE_KEY", ""),
+        SUPABASE_STORAGE_BUCKET=os.environ.get("SUPABASE_STORAGE_BUCKET", "caopanheiro-fotos"),
     )
     if test_config:
         app.config.update(test_config)
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
     upload_dir = Path(app.config.get("UPLOAD_FOLDER", Path(app.static_folder) / "uploads"))
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    app.config["UPLOAD_FOLDER"] = str(upload_dir)
+    if app.config["STORAGE_BACKEND"] not in ("local", "supabase"):
+        raise ValueError("STORAGE_BACKEND deve ser local ou supabase.")
+    if app.config["STORAGE_BACKEND"] == "supabase":
+        if not app.config["SUPABASE_URL"].startswith("https://") or not app.config["SUPABASE_SERVICE_ROLE_KEY"]:
+            raise ValueError("Configure SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para salvar as fotos.")
+    else:
+        upload_dir.mkdir(parents=True, exist_ok=True)
+    app.jinja_env.globals["photo_url"] = photo_url
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db)
 
@@ -88,22 +99,10 @@ def create_app(test_config=None):
             return view(**kwargs)
         return wrapped
 
-    def save_photo(upload):
-        if upload is None or not upload.filename:
-            return None
-        filename = secure_filename(upload.filename)
-        extension = Path(filename).suffix.lower()
-        if extension not in {".jpg", ".jpeg", ".png", ".webp"}:
-            raise ValueError("A foto deve estar no formato JPG, PNG ou WEBP.")
-        stored_name = f"{uuid.uuid4().hex}{extension}"
-        upload.save(upload_dir / stored_name)
-        return stored_name
-
-    def remove_photo(filename):
-        if filename:
-            photo_path = upload_dir / Path(filename).name
-            if photo_path.is_file():
-                photo_path.unlink()
+    @app.get("/health")
+    def health():
+        query_db("SELECT 1")
+        return {"status": "ok"}
 
     @app.route("/")
     def index():
@@ -486,10 +485,8 @@ def create_app(test_config=None):
                 else:
                     photo_filename = animal["photo_filename"]
                     if new_photo:
-                        remove_photo(photo_filename)
                         photo_filename = new_photo
                     elif should_remove_photo:
-                        remove_photo(photo_filename)
                         photo_filename = None
                     execute_db(
                         """UPDATE animals
@@ -498,6 +495,8 @@ def create_app(test_config=None):
                            WHERE id = ?""",
                         tuple(fields) + (photo_filename, status, animal_id),
                     )
+                    if animal["photo_filename"] and animal["photo_filename"] != photo_filename:
+                        remove_photo(animal["photo_filename"])
                     flash("Animal atualizado.", "success")
                     return redirect(url_for("admin_dashboard"))
         return render_template("animal_form.html", animal=animal, options=animal_options)
