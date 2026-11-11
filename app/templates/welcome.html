@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Bem-vindo · Caopanheiro{% endblock %}
+{% block content %}
+<section class="welcome-page">
+  <div class="welcome-art" aria-hidden="true"><i class="fa-solid fa-dog" aria-hidden="true"></i> <i class="fa-solid fa-cat" aria-hidden="true"></i><span><i class="fa-solid fa-heart" aria-hidden="true"></i></span></div>
+  <p class="eyebrow">Bem-vindo ao Caopanheiro</p>
+  <h1>Conectando pets a lares cheios de amor.</h1>
+  <p>Seu novo melhor amigo pode estar aqui. Explore, conheça as histórias e acompanhe uma adoção responsável.</p>
+  <div class="welcome-actions"><a class="button button-yellow" href="{{ url_for('explore') }}">Explorar pets <span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span></a><a class="text-link" href="{{ url_for('register') }}">Criar minha conta</a></div>
+</section>
+{% endblock %}

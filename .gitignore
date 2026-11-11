@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+instance/
+.env
+*.sqlite3
+
+# Pasta local com repositório Git vazio e ambiente virtual duplicado
+/caopanheiro/
+
+# Metadados de arquivos copiados do Windows
+*:Zone.Identifier

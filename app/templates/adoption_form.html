@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Solicitar adoção · Caopanheiro{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('animal_detail', animal_id=animal.id) }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar para {{ animal.name }}</a>
+<section class="form-card adoption-card">
+<p class="eyebrow">Um novo começo</p><h1>Quero adotar {{ animal.name }}</h1>
+<p>A ONG analisará suas respostas e entrará em contato. O envio não garante a aprovação.</p>
+<ol class="step-progress" aria-label="Etapas da solicitação"><li>Dados pessoais</li><li>Moradia</li><li>Experiência</li><li>Revisão</li></ol>
+<form method="post" id="adoption-form" class="compact-form">
+<fieldset data-step><legend>1. Dados pessoais</legend>
+<label>Nome completo<input name="full_name" autocomplete="name" value="{{ request.form.get('full_name', g.user.name) }}" required maxlength="120"></label>
+<label>Telefone para contato<input name="phone" type="tel" autocomplete="tel" value="{{ request.form.get('phone', '') }}" required maxlength="40"></label>
+<p>E-mail de contato: {{ g.user.email }}</p></fieldset>
+<fieldset data-step><legend>2. Moradia</legend>
+<label>Como é a sua moradia?<textarea name="housing" rows="3" required placeholder="Casa ou apartamento? Há proteção nas janelas e espaço seguro?">{{ request.form.get('housing', '') }}</textarea></label>
+<label>Quem mora com você?<textarea name="household" rows="3" required placeholder="Conte se todos concordam com a adoção e se há outros animais.">{{ request.form.get('household', '') }}</textarea></label></fieldset>
+<fieldset data-step><legend>3. Experiência e cuidados</legend>
+<label>Sua experiência com pets<textarea name="experience" rows="3" required placeholder="Já cuidou de animais? Como organizará alimentação, passeios e cuidados veterinários?">{{ request.form.get('experience', '') }}</textarea></label>
+<label>Por que deseja adotar {{ animal.name }}?<textarea name="message" rows="4" required>{{ request.form.get('message', '') }}</textarea></label></fieldset>
+<fieldset data-step><legend>4. Revise sua solicitação</legend><dl id="adoption-review"></dl>
+<p>Seus dados serão usados pela equipe da ONG para avaliar a candidatura e combinar os próximos passos.</p>
+<label class="checkbox-label"><input type="checkbox" name="consent" required {% if request.form.get('consent') %}checked{% endif %}> Entendo o compromisso da adoção responsável e autorizo o contato da ONG sobre este pedido.</label></fieldset>
+<div class="step-actions"><button class="button button-outline" type="button" id="step-back" hidden>Voltar</button><button class="button" type="button" id="step-next" hidden>Próximo <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></button><button class="button" type="submit" id="step-submit">Enviar solicitação</button></div>
+</form></section>
+{% endblock %}

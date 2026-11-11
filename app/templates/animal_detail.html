@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% block title %}{{ animal.name }} · Caopanheiro{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('explore') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar para pets</a>
+<article class="detail detail-pet">
+<div class="detail-photo">{% if animal.photo_filename %}<img src="{{ url_for('static', filename='uploads/' ~ animal.photo_filename) }}" alt="Foto de {{ animal.name }}">{% else %}<i class="fa-solid fa-{{ 'cat' if animal.species == 'Gato' else 'dog' }}" aria-hidden="true"></i>{% endif %}</div>
+<div class="detail-content">
+  <div class="tag-row"><span class="tag">{{ animal.species }}</span><span class="location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ONG municipal · Joaçaba</span></div>
+  <h1>{{ animal.name }}</h1>
+  <div class="pet-facts"><div><strong><i class="fa-solid fa-cake-candles" aria-hidden="true"></i></strong><span>Idade<b>{{ animal.age or 'Não informada' }}</b></span></div><div><strong><i class="fa-solid fa-ruler-combined" aria-hidden="true"></i></strong><span>Porte<b>{{ animal.size or 'Não informado' }}</b></span></div></div>
+  <ul class="pet-info-tags" aria-label="Características do animal"><li><i class="fa-solid fa-paw" aria-hidden="true"></i> {{ animal.breed or 'Raça não informada' }}</li><li><i class="fa-solid fa-venus-mars" aria-hidden="true"></i> {{ animal.sex or 'Sexo não informado' }}</li></ul>
+  <section class="pet-info-section"><h2>Sobre mim</h2>
+    {% if animal.description | info_tags %}<ul class="pet-info-tags personality-tags">{% for item in animal.description | info_tags %}<li>{{ item }}</li>{% endfor %}</ul>{% else %}<p>Este animal aguarda uma família responsável. Conheça sua história com a ONG.</p>{% endif %}
+  </section>
+  <section class="pet-info-section"><h2>Saúde e cuidados</h2>
+    <ul class="pet-info-tags care-tags">
+      <li><i class="fa-solid fa-syringe" aria-hidden="true"></i> {{ {'Sim': 'Vacinação em dia', 'Não': 'Não vacinado', 'Parcial': 'Vacinação parcial'}.get(animal.vaccinated, 'Vacinação a confirmar') }}</li>
+      <li><i class="fa-solid fa-shield-heart" aria-hidden="true"></i> {{ {'Sim': 'Castrado', 'Não': 'Não castrado'}.get(animal.neutered, 'Castração a confirmar') }}</li>
+      {% for item in animal.health | info_tags %}<li>{{ item }}</li>{% endfor %}
+    </ul>
+    {% if not animal.health %}<p class="care-note">Confirme os cuidados necessários com a ONG.</p>{% endif %}
+  </section>
+  {% if animal.status == 'available' %}
+    <a class="button button-yellow" href="{{ url_for('new_adoption', animal_id=animal.id) }}"><i class="fa-solid fa-heart" aria-hidden="true"></i> Quero adotar {{ animal.name }}</a>
+  {% else %}<span class="status {{ animal.status }}">{{ animal.status | status_label }}</span>{% endif %}
+</div></article>
+{% endblock %}

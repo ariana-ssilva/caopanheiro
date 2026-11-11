@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Meu perfil · Caopanheiro{% endblock %}
+{% block content %}
+<div class="profile-layout">
+<aside class="profile-card"><div class="avatar">{% if g.user.photo_filename %}<img src="{{ url_for('static', filename='uploads/' ~ g.user.photo_filename) }}" alt="Foto de {{ g.user.name }}">{% else %}<i class="fa-solid fa-user" aria-hidden="true"></i>{% endif %}</div><h2>{{ g.user.name }}</h2><p>{{ g.user.email }}</p><span class="tag">{{ {'adopter': 'Adotante', 'ong': 'Equipe da ONG', 'admin': 'Administrador'}.get(g.user.role, 'Conta') }}</span><nav><a class="active" href="{{ url_for('profile') }}">Meu perfil</a>{% if g.user.role in ('ong', 'admin') %}<a href="{{ url_for('admin_dashboard') }}">Painel da ONG</a>{% endif %}<a href="{{ url_for('my_adoptions') }}">Meus pedidos</a><a href="{{ url_for('favorites') }}">Favoritos</a><a href="{{ url_for('donations') }}">Doações</a></nav></aside>
+<section class="form-card profile-form"><p class="eyebrow">Suas informações</p><h1>Meu perfil</h1><p>Atualize seus dados e escolha uma foto para sua conta.</p>
+<form method="post" enctype="multipart/form-data" class="compact-form">
+{% include 'components/profile_photo.html' %}
+<div class="form-grid"><label>{{ 'Nome da equipe / responsável' if g.user.role in ('ong', 'admin') else 'Nome completo' }}<input name="name" value="{{ request.form.get('name', g.user.name) }}" autocomplete="name" required maxlength="120"></label><label>E-mail<input type="email" value="{{ g.user.email }}" disabled></label></div>
+<div class="form-actions"><button class="button" type="submit"><i class="fa-solid fa-check" aria-hidden="true"></i> Salvar alterações</button></div></form>
+<hr><h2>Ajude a transformar vidas</h2><p>Além de adotar, você pode contribuir com a ONG.</p><a class="button button-yellow" href="{{ url_for('donations') }}">Conhecer formas de doar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></section></div>
+{% endblock %}

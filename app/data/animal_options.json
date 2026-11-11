@@ -1,0 +1,8 @@
+{
+  "species": ["Cão", "Gato"],
+  "sizes": ["Pequeno", "Médio", "Grande"],
+  "breeds": {
+    "Cão": ["Sem raça definida (SRD)", "Beagle", "Border Collie", "Boxer", "Bulldog Francês", "Chihuahua", "Dachshund", "Golden Retriever", "Husky Siberiano", "Labrador Retriever", "Lhasa Apso", "Maltês", "Pastor Alemão", "Pinscher", "Poodle", "Pug", "Rottweiler", "Schnauzer", "Shih Tzu", "Spitz Alemão", "Yorkshire Terrier"],
+    "Gato": ["Sem raça definida (SRD)", "Abissínio", "American Shorthair", "Bengal", "British Shorthair", "Burmês", "Exótico", "Maine Coon", "Persa", "Ragdoll", "Sagrado da Birmânia", "Siamês", "Siberiano", "Sphynx"]
+  }
+}

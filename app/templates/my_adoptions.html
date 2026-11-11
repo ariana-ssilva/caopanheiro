@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% block title %}Meus pedidos · Caopanheiro{% endblock %}
+{% block content %}
+<p class="eyebrow">Cada passo, com cuidado</p><h1>Meus pedidos</h1>
+<p>Acompanhe a avaliação da ONG. A aprovação depende de análise e contato com a equipe.</p>
+<div class="requests-grid">{% for adoption in adoptions %}<article class="form-card request-card"><div class="section-heading"><h2>{{ adoption.animal_name }}</h2><span class="status {{ adoption.status }}">{{ adoption.status | status_label }}</span></div><p>Solicitação enviada em {{ adoption.created_at }}</p>
+{% set guidance = {'pending': 'Recebemos seu pedido. Aguarde a análise da equipe.', 'reviewing': 'A ONG está avaliando suas respostas. Mantenha seus dados de contato atualizados.', 'interview': 'A equipe entrará em contato para conversar sobre a adoção.', 'approved': 'Seu pedido foi aprovado. Combine com a ONG os próximos passos para finalizar a adoção.', 'rejected': 'O pedido não foi aprovado. Você pode conhecer outros animais disponíveis.', 'completed': 'Adoção finalizada! Conte à ONG como está a adaptação.'} %}
+<p>{{ guidance.get(adoption.status, 'Aguarde orientações da ONG.') }}</p>
+{% if adoption.status == 'completed' %}<h3>Acompanhamento pós-adoção</h3><form method="post" action="{{ url_for('feedback', adoption_id=adoption.id) }}"><label>Como foi a experiência?<select name="rating"><option value="5">5 — Muito boa</option><option value="4">4 — Boa</option><option value="3">3 — Regular</option><option value="2">2 — Ruim</option><option value="1">1 — Muito ruim</option></select></label><label>Relato da adaptação<textarea name="comment" rows="3" required></textarea></label><button class="button">Enviar acompanhamento</button></form>{% endif %}
+</article>{% else %}<div class="empty-state"><span aria-hidden="true"><i class="fa-solid fa-paw" aria-hidden="true"></i></span><h2>Seu primeiro encontro começa aqui</h2><p>Você ainda não enviou pedidos de adoção.</p><a class="button" href="{{ url_for('explore') }}">Explorar animais</a></div>{% endfor %}</div>
+{% endblock %}

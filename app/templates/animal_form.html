@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar animal' if animal else 'Cadastrar animal' }} · Caopanheiro{% endblock %}
+{% macro value(key) %}{{ request.form.get(key, (animal[key] or '') if animal else '') }}{% endmacro %}
+{% macro select_field(key, label, choices, empty='Não informado', required=false) %}
+<label>{{ label }}<select name="{{ key }}" id="animal-{{ key }}" {% if required %}required{% endif %}>
+<option value="">{{ empty }}</option>
+{% set current = value(key)|string %}
+{% if current and current not in choices %}<option selected>{{ current }}</option>{% endif %}
+{% for choice in choices %}<option {% if current == choice %}selected{% endif %}>{{ choice }}</option>{% endfor %}
+</select></label>
+{% endmacro %}
+{% block content %}
+<a class="back-link" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Voltar para o painel</a>
+<div class="animal-editor-heading"><p class="eyebrow">{{ 'Cada detalhe importa' if animal else 'Um novo começo' }}</p><h1>{{ 'Editar ' ~ animal.name if animal else 'Cadastrar animal' }}</h1><p>Apresente este companheiro à sua futura família.</p></div>
+<form method="post" enctype="multipart/form-data" class="animal-editor">
+  <aside class="editor-photo-panel">
+    <h2><i class="fa-solid fa-camera" aria-hidden="true"></i> Foto do pet</h2>
+    <p>Uma boa foto ajuda a contar essa história.</p>
+    {% if animal and animal.photo_filename %}<img class="editor-current-photo" src="{{ url_for('static', filename='uploads/' ~ animal.photo_filename) }}" alt="Foto atual de {{ animal.name }}">{% endif %}
+    <img id="selected-photo-preview" class="selected-photo-preview" alt="Prévia da foto selecionada" hidden>
+    <label class="editor-upload" for="animal-photo">Escolher foto<input id="animal-photo" type="file" name="photo" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" aria-describedby="photo-help photo-preview-message"></label>
+    <small id="photo-help">JPG, PNG ou WEBP · até 5 MB</small><p id="photo-preview-message" role="status" aria-live="polite"></p>
+    {% if animal and animal.photo_filename %}<label class="checkbox-label"><input type="checkbox" name="remove_photo"> Remover foto atual</label>{% endif %}
+  </aside>
+  <div class="editor-fields">
+    <section class="editor-section"><h2><i class="fa-solid fa-paw" aria-hidden="true"></i> Vamos conhecer o pet</h2>
+      <div class="animal-field-grid">
+        <label>Nome *<input name="name" value="{{ value('name') }}" required maxlength="120" placeholder="Como ele se chama?"></label>
+        {{ select_field('species', 'Espécie *', options.species, 'Selecione a espécie', true) }}
+        <label>Raça<input name="breed" id="animal-breed" list="animal-breeds" value="{{ value('breed') }}" placeholder="Digite ou escolha uma sugestão" maxlength="80" aria-describedby="breed-help"><small id="breed-help">Se não souber, use Sem raça definida (SRD) ou deixe em branco.</small></label>
+        <datalist id="animal-breeds">{% for species, breeds in options.breeds.items() %}{% for breed in breeds %}<option value="{{ breed }}">{{ species }}</option>{% endfor %}{% endfor %}</datalist>
+        {{ select_field('sex', 'Sexo', ['Fêmea', 'Macho']) }}
+        <label>Idade<input name="age" value="{{ value('age') }}" placeholder="Ex.: 2 anos ou 4 meses" maxlength="40"></label>
+        {{ select_field('size', 'Porte', options.sizes) }}
+      </div>
+    </section>
+    <section class="editor-section"><h2><i class="fa-solid fa-heart-pulse" aria-hidden="true"></i> Saúde e cuidados</h2>
+      <div class="animal-field-grid">
+        {{ select_field('vaccinated', 'Vacinação', ['Sim', 'Não', 'Parcial']) }}
+        {{ select_field('neutered', 'Castração', ['Sim', 'Não']) }}
+        <label class="field-wide">Cuidados e observações<textarea name="health" rows="3" placeholder="Ex.: Acompanhamento veterinário; Alimentação especial">{{ value('health') }}</textarea><small>Separe os cuidados com ponto e vírgula ou uma nova linha para criar tags.</small></label>
+      </div>
+    </section>
+    <section class="editor-section"><h2><i class="fa-solid fa-heart" aria-hidden="true"></i> Personalidade e história</h2>
+      <label>Descrição<textarea name="description" rows="3" placeholder="Ex.: Carinhoso; Adora passear; Convive bem com outros animais">{{ value('description') }}</textarea><small>Separe características com ponto e vírgula ou uma nova linha. Você também pode escrever uma história completa.</small></label>
+      {% if animal %}<label class="editor-status">Status<select name="status">{% for key, label in [('available', 'Disponível'), ('adopted', 'Adotado'), ('inactive', 'Inativo')] %}<option value="{{ key }}" {% if value('status') == key %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{% endif %}
+    </section>
+    <div class="editor-actions"><a class="text-link" href="{{ url_for('admin_dashboard') }}">Cancelar</a><button class="button" type="submit"><i class="fa-solid fa-check" aria-hidden="true"></i> {{ 'Salvar alterações' if animal else 'Cadastrar animal' }}</button></div>
+  </div>
+</form>
+<script id="animal-options" type="application/json">{{ options.breeds | tojson }}</script>
+{% endblock %}

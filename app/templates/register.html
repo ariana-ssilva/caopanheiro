@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block title %}Cadastro · Caopanheiro{% endblock %}
+{% block content %}
+<section class="form-card account-form-card"><p class="eyebrow">Faça parte dessa história</p><h1>Criar cadastro</h1><p>Seu próximo companheiro pode estar aqui.</p>
+<form method="post" enctype="multipart/form-data" class="compact-form">
+{% include 'components/profile_photo.html' %}
+<div class="form-grid">
+<label>Nome completo<input name="name" value="{{ request.form.get('name', '') }}" autocomplete="name" required maxlength="120"></label>
+<label>E-mail<input type="email" name="email" value="{{ request.form.get('email', '') }}" autocomplete="email" required maxlength="180"></label>
+<label class="field-wide">Senha<input type="password" name="password" autocomplete="new-password" minlength="8" required><small>Use pelo menos 8 caracteres.</small></label>
+</div><div class="form-actions"><a class="text-link" href="{{ url_for('login') }}">Já tenho conta</a><button class="button" type="submit"><i class="fa-solid fa-user-plus" aria-hidden="true"></i> Cadastrar</button></div>
+</form></section>{% endblock %}
