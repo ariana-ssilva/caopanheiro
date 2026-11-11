@@ -5,7 +5,7 @@
 <label>{{ label }}<select name="{{ key }}" id="animal-{{ key }}" {% if required %}required{% endif %}>
 <option value="">{{ empty }}</option>
 {% set current = value(key)|string %}
-{% if current and current not in choices %}<option selected>{{ current }}</option>{% endif %}
+{% if current and current not in choices %}<option value="{{ current }}" selected>{{ current }}</option>{% endif %}
 {% for choice in choices %}<option {% if current == choice %}selected{% endif %}>{{ choice }}</option>{% endfor %}
 </select></label>
 {% endmacro %}
@@ -27,8 +27,8 @@
       <div class="animal-field-grid">
         <label>Nome *<input name="name" value="{{ value('name') }}" required maxlength="120" placeholder="Como ele se chama?"></label>
         {{ select_field('species', 'Espécie *', options.species, 'Selecione a espécie', true) }}
-        <label>Raça<input name="breed" id="animal-breed" list="animal-breeds" value="{{ value('breed') }}" placeholder="Digite ou escolha uma sugestão" maxlength="80" aria-describedby="breed-help"><small id="breed-help">Se não souber, use Sem raça definida (SRD) ou deixe em branco.</small></label>
-        <datalist id="animal-breeds">{% for species, breeds in options.breeds.items() %}{% for breed in breeds %}<option value="{{ breed }}">{{ species }}</option>{% endfor %}{% endfor %}</datalist>
+        {% set breed_choices = options.breeds.get(value('species')|string, (options.breeds['Cão'] + options.breeds['Gato'])|unique|list) %}
+        {{ select_field('breed', 'Raça', breed_choices, 'Não informada') }}
         {{ select_field('sex', 'Sexo', ['Fêmea', 'Macho']) }}
         <label>Idade<input name="age" value="{{ value('age') }}" placeholder="Ex.: 2 anos ou 4 meses" maxlength="40"></label>
         {{ select_field('size', 'Porte', options.sizes) }}
