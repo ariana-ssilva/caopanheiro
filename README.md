@@ -138,3 +138,7 @@ A migração converte uma única vez as antigas intenções que tinham o rótulo
 ## Publicação
 
 A publicação escolhida usa **Render + Supabase**, com PostgreSQL e imagens externos. Siga [Publicação no Render com Supabase](docs/render-supabase.md). O roteiro alternativo do PythonAnywhere continua em [Publicação no PythonAnywhere](docs/publicacao.md).
+
+## Instalação como aplicativo (PWA)
+
+O projeto inclui manifesto, ícones e aviso offline. Veja como publicar e instalar no Android, iPhone e computador em [Instalação PWA](docs/pwa.md). Operações e consultas continuam exigindo internet.

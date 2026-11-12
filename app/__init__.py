@@ -5,7 +5,7 @@ from functools import wraps
 from pathlib import Path
 
 import click
-from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for
+from flask import Flask, abort, flash, g, redirect, render_template, request, session, url_for, send_from_directory
 from werkzeug.exceptions import RequestEntityTooLarge
 
 from .db import close_db, get_db, init_db, query_db, execute_db
@@ -72,6 +72,9 @@ def create_app(test_config=None):
 
     @app.before_request
     def load_logged_user():
+        if request.endpoint in ("static", "pwa_worker"):
+            g.user = None
+            return
         user_id = session.get("user_id")
         g.user = query_db("SELECT * FROM users WHERE id = ?", (user_id,), one=True) if user_id else None
 
@@ -98,6 +101,13 @@ def create_app(test_config=None):
                 abort(403)
             return view(**kwargs)
         return wrapped
+
+    @app.get("/service-worker.js")
+    def pwa_worker():
+        response = send_from_directory(app.static_folder, "service-worker.js", mimetype="application/javascript")
+        response.headers["Cache-Control"] = "no-cache"
+        response.headers["Service-Worker-Allowed"] = "/"
+        return response
 
     @app.get("/health")
     def health():

@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Seu novo melhor amigo pode estar aqui. Encontre pets para adoção responsável.">
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='pwa/apple-touch-icon.png') }}">
+  <meta name="theme-color" content="#5C4033">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cãopanheiro">
   <title>{% block title %}Caopanheiro{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/css/fontawesome.min.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/css/solid.min.css') }}">
@@ -14,6 +19,7 @@
   <script src="{{ url_for('static', filename='photo-preview.js') }}" defer></script>
   <script src="{{ url_for('static', filename='navigation.js') }}" defer></script>
   <script src="{{ url_for('static', filename='animal-form.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='pwa.js') }}" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Pular para o conteúdo</a>
@@ -48,6 +54,7 @@
     {% endif %}
   </nav>
   <div class="sidebar-bottom">
+    <button id="install-app" class="button install-app-button" type="button" hidden><i class="fa-solid fa-download" aria-hidden="true"></i> Instalar aplicativo</button>
     {% if g.user %}<div class="sidebar-account"><span class="sidebar-avatar" aria-hidden="true">{% if g.user.photo_filename %}<img src="{{ photo_url(g.user.photo_filename) }}" alt="">{% else %}{{ g.user.name[0]|upper }}{% endif %}</span><div><strong>{{ g.user.name }}</strong><small>{{ {'adopter': 'Adotante', 'ong': 'Equipe da ONG', 'admin': 'Administrador'}.get(g.user.role, 'Conta') }}</small></div></div><form method="post" action="{{ url_for('logout') }}"><button class="sidebar-logout" type="submit">Sair da conta <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i></button></form>
     {% else %}<p>Conectando pets a lares cheios de amor.</p>{% endif %}
   </div>

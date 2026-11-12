@@ -102,3 +102,5 @@ select{
 
 .dashboard-card-link{color:var(--cocoa);text-decoration:none;transition:border-color .15s,box-shadow .15s}.dashboard-card-link:hover{border-color:var(--caramel);box-shadow:0 8px 24px rgba(92,64,51,.15)}.dashboard-card-link:focus-visible{outline:3px solid var(--cocoa);outline-offset:4px}.dashboard-card-link small i{margin-left:.4rem}.dashboard-heading-actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}.dashboard-heading-actions .button{width:auto;white-space:nowrap}.category-view{margin-top:auto;padding-top:1rem;font-size:.85rem;font-weight:800;display:flex;align-items:center;justify-content:space-between}.dashboard-filter-note{padding:.8rem 1rem;background:var(--yellow);border-radius:12px}#animals,#applications,#donations{scroll-margin-top:90px}
 @media(max-width:700px){.dashboard-heading-actions{width:100%}.dashboard-heading-actions .button{flex:1}}
+
+.install-app-button{width:100%;margin-bottom:1rem;font-size:.85rem}

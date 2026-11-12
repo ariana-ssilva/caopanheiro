@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Cãopanheiro — Adoção responsável",
+  "short_name": "Cãopanheiro",
+  "description": "Conectando pets a lares cheios de amor.",
+  "lang": "pt-BR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF7F0",
+  "theme_color": "#5C4033",
+  "icons": [
+    { "src": "/static/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/pwa/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
